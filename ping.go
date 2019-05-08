@@ -8,10 +8,10 @@ import (
 	"time"
 )
 
-func simple_ping(host string, c chan int) {
-	ping(host, c, 4, 32, 1000, false)
+func SimplePing(host string, c chan int) {
+	Ping(host, c, 4, 32, 1000, false)
 }
-func ping(host string, c chan int, count int, size int, timeout int64, never_stop bool) {
+func Ping(host string, c chan int, count int, size int, timeout int64, never_stop bool) {
 
 	cname, _ := net.LookupCNAME(host)
 	starttime := time.Now()
