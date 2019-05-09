@@ -11,7 +11,7 @@ type Ping_info struct {
 }
 
 func Ping_inside_simple(host string, c chan Ping_info) {
-	Ping_inside(host, c, 4, 32, 1000, false)
+	Ping_inside(host, c, 5, 32, 1000, false)
 }
 func Ping_inside(host string, c chan Ping_info, count int, size int, timeout int64, never_stop bool) {
 
