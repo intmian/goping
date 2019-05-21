@@ -3,7 +3,12 @@ package ping_simple
 import (
 	"encoding/json"
 	"fmt"
+	"gonum.org/v1/plot"
+	"gonum.org/v1/plot/plotter"
+	"gonum.org/v1/plot/vg"
+	"image/color"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -21,7 +26,7 @@ type PingDataSmall struct {
 	lostRate float32 // 丢失率
 }
 type PingTimeData struct {
-	time     int64   // 时间梭
+	time     float32 // 时间梭
 	host     string  // 主机地址
 	avgTime  float32 // 平均往返时间
 	lostRate float32 // 丢失率
@@ -60,6 +65,7 @@ func systemSignal(endSignal chan<- bool) {
 	sigs := make(chan os.Signal)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	<-sigs
+	//time.Sleep(50 * time.Second) // debug
 	endSignal <- true
 }
 
@@ -91,7 +97,7 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 			hostData[data.host] = PingDataSmall{data.avgTime, data.lostRate}
 			clear()
 			for k, v := range hostData {
-				fmt.Printf("%-20s : %6.2fms %3.0f%%\n", k, v.avgTime, v.lostRate * 100)
+				fmt.Printf("%-20s : %6.2fms %3.0f%%\n", k, v.avgTime, v.lostRate*100)
 			}
 			print(strFlash[i])
 			i++
@@ -166,13 +172,13 @@ func guiExec(endChan chan bool, pingDataChanPro chan pingData) []PingTimeData {
 			return pingDataAll
 		case temp := <-pingDataChanPro: // 同步的存一下
 			pingDataAll = append(pingDataAll,
-				PingTimeData{int64(time.Now().Second()), temp.host, temp.avgTime, temp.lostRate})
+				PingTimeData{float32(time.Now().Hour()) + float32(time.Now().Minute())/60 + float32(time.Now().Second())/3600, temp.host, temp.avgTime, temp.lostRate})
 		}
 	}
 }
 
 func Gui() {
-
+	rand.Seed(time.Now().UnixNano())
 	data, err := ioutil.ReadFile("setting.json")
 	if err != nil {
 		fmt.Printf("文件%s不存在\n", "setting.json")
@@ -196,9 +202,9 @@ func Gui() {
 	const serviceNum = 4             // 除了各个goroutine的中止信号外，还有一个gui自己用的处于 [0]
 	endChans := make([]chan bool, 0) // 接受终止信号
 	clockChan := make(chan bool)
-	pingDataChanOri := make(chan pingData)    // ping数据来源
-	pingDataChanTarget := make(chan pingData) // 送向printer的数据
-	pingDataChanPro := make(chan pingData)    // 送向本地储存的数据
+	pingDataChanOri := make(chan pingData, 20)    // ping数据来源
+	pingDataChanTarget := make(chan pingData, 20) // 送向printer的数据
+	pingDataChanPro := make(chan pingData, 20)    // 送向本地储存的数据
 
 	for i := 0; i < serviceNum; i++ {
 		endChans = append(endChans, make(chan bool)) // 方便无阻塞的发送信号给各个协程
@@ -214,5 +220,64 @@ func Gui() {
 	go pinger(pingDataChanOri, hosts, endChans[3], sleepTime, count)
 
 	pingDataAll := guiExec(endChan, pingDataChanPro) // 存档的ping数据
-	print(len(pingDataAll))
+
+	n := len(hosts)
+	avgs := make([][]float32, n)
+	lostRates := make([][]float32, n)
+	times := make([][]float32, n) // 将时间化为h.m/64+s/3600
+	for _, data := range pingDataAll {
+		for i, name := range hosts {
+			if data.host == name {
+				avgs[i] = append(avgs[i], data.avgTime)
+				lostRates[i] = append(lostRates[i], data.lostRate)
+				times[i] = append(times[i], data.time)
+			}
+		}
+	}
+
+	avgPts := make([]plotter.XYs, n)
+	for i := 0; i < n; i++ {
+		length := len(avgs[i])
+		avgPts[i] = make(plotter.XYs, length)
+		for j := 0; j < length; j++ {
+			avgPts[i][j].X = float64(times[i][j])
+			avgPts[i][j].Y = float64(avgs[i][j])
+		}
+	}
+	pAvg, err := plot.New()
+	if err != nil {
+		panic(err)
+	}
+	pAvg.Title.Text = "avg-time"
+	pAvg.X.Label.Text = "time(h)"
+	pAvg.Y.Label.Text = "time(ms)"
+	for i := 0; i < n; i++ {
+		l, _ := plotter.NewLine(avgPts[i])
+		l.LineStyle.Color = color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255}
+		pAvg.Add(l)
+		pAvg.Legend.Add(hosts[i], l)
+	}
+	_ = pAvg.Save(10*vg.Inch, 10*vg.Inch, "avg.png")
+
+	lostRatesPts := make([]plotter.XYs, n)
+	for i := 0; i < n; i++ {
+		length := len(lostRates[i])
+		lostRatesPts[i] = make(plotter.XYs, length)
+		for j := 0; j < length; j++ {
+			lostRatesPts[i][j].X = float64(times[i][j])
+			lostRatesPts[i][j].Y = float64(lostRates[i][j])
+		}
+	}
+	pLostRate, _ := plot.New()
+
+	pLostRate.Title.Text = "lost rate-time"
+	pLostRate.X.Label.Text = "time(h)"
+	pLostRate.Y.Label.Text = "lost rate"
+	for i := 0; i < n; i++ {
+		l, _ := plotter.NewLine(lostRatesPts[i])
+		l.LineStyle.Color = color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255}
+		pLostRate.Add(l)
+		pLostRate.Legend.Add(hosts[i], l)
+	}
+	_ = pLostRate.Save(10*vg.Inch, 10*vg.Inch, "lost_rate.png")
 }

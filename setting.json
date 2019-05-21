@@ -1,5 +1,5 @@
 {
-  "sleepTime" : 5,
+  "sleepTime" : 1,
   "repaintTime" : 0.5,
-  "count" : 20
+  "count" : 3
 }
