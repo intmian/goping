@@ -1,7 +1,9 @@
 package ping_simple
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -18,7 +20,6 @@ type PingDataSmall struct {
 	avgTime  float32 // 平均往返时间
 	lostRate float32 // 丢失率
 }
-
 type PingTimeData struct {
 	time     int64   // 时间梭
 	host     string  // 主机地址
@@ -69,8 +70,10 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 		endSig: 外部的终止信号
 		pingData: 外部来的数据
 	*/
+	clear()
 	strFlash := []string{"↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑", "→→→→→→→→→→→→→→→", "↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓", "←←←←←←←←←←←←←←←"}
-	strBack := "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b"
+	strBack := "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" // 需要多一点\b 不知道为什么和方向箭头一样数量的话在我的cmder里面就显示不清楚了
+
 	hostData := make(map[string]PingDataSmall) // 主机号对应的数据
 
 	i := 0
@@ -87,15 +90,15 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 			hostData[data.host] = PingDataSmall{data.avgTime, data.lostRate}
 			clear()
 			for k, v := range hostData {
-				fmt.Printf("%20s : %3.2fms %3.2f%%", k, v.avgTime, v.lostRate)
-				print(strFlash[i])
-				i++
-				i = i % 4
+				fmt.Printf("%-20s : %3.2fms %3.2f%%\n", k, v.avgTime, v.lostRate)
 			}
+			print(strFlash[i])
+			i++
+			i = i % 4
 		}
 	}
 }
-func pinger(pingSig chan<- pingData, hosts []string, endSig <-chan bool, sleepTime float32) {
+func pinger(pingSig chan<- pingData, hosts []string, endSig <-chan bool, sleepTime float32, count int) {
 	/*
 		pingSig 对外的ping信号
 	*/
@@ -115,7 +118,7 @@ func pinger(pingSig chan<- pingData, hosts []string, endSig <-chan bool, sleepTi
 			return
 		default:
 			for _, hostC := range hostCs {
-				go Ping_inside(hostC.host, hostC.c, 20, 32, 3000, false)
+				go Ping_inside(hostC.host, hostC.c, count, 32, 3000, false)
 			} // 运行所有ping
 			for _, hostC := range hostCs {
 				var temp pingData
@@ -131,44 +134,84 @@ func pinger(pingSig chan<- pingData, hosts []string, endSig <-chan bool, sleepTi
 		time.Sleep(time.Duration(1000*sleepTime) * time.Millisecond)
 	}
 }
-func bindChanToChans(chanSource chan bool, chansTarget ...chan bool) {
+func bindChanToChansBool(chanSource chan bool, chansTarget []chan bool) {
 	/*
 		克隆chanSource处的信号，到各个chanTarget中
 	*/
-	sigTemp := <-chanSource
-	for _, sigC := range chansTarget {
-		sigC <- sigTemp
+	for {
+		sigTemp := <-chanSource
+		for _, sigC := range chansTarget {
+			sigC <- sigTemp
+		}
 	}
 }
-func gui(hosts []string, sleepTime float32, repaintTime float32) {
+func bindChanToChansPing(chanSource chan pingData, chansTarget ...chan pingData) {
+	/*
+		克隆chanSource处的信号，到各个chanTarget中
+	*/
+	for {
+		sigTemp := <-chanSource
+		for _, sigC := range chansTarget {
+			sigC <- sigTemp
+
+		}
+	}
+}
+func guiExec(endChan chan bool, pingDataChanPro chan pingData) []PingTimeData {
+	var pingDataAll []PingTimeData
+	for { // exec
+		select {
+		case <-endChan: // 退出
+			return pingDataAll
+		case temp := <-pingDataChanPro: // 同步的存一下
+			pingDataAll = append(pingDataAll,
+				PingTimeData{int64(time.Now().Second()), temp.host, temp.avgTime, temp.lostRate})
+		}
+	}
+}
+
+func Gui() {
+
+	data, err := ioutil.ReadFile("setting.json")
+	if err != nil {
+		fmt.Printf("文件%s不存在\n", "setting.json")
+		return
+	}
+	settingData := map[string]float32{}
+	_ = json.Unmarshal(data, &settingData) // 反序列化
+	sleepTime := settingData["sleepTime"]
+	repaintTime := settingData["repaintTime"]
+	count := int(settingData["count"])
+
+	data2, err2 := ioutil.ReadFile("setting.json")
+	if err2 != nil {
+		fmt.Printf("文件%s不存在\n", "setting.json")
+		return
+	}
+	var hosts []string
+	_ = json.Unmarshal(data2, &hosts) // 反序列化
+
 	endChanOrigin := make(chan bool) // 发出终止信号
 	const serviceNum = 4             // 除了各个goroutine的中止信号外，还有一个gui自己用的处于 [0]
 	endChans := make([]chan bool, 0) // 接受终止信号
 	clockChan := make(chan bool)
 	pingDataChanOri := make(chan pingData)    // ping数据来源
 	pingDataChanTarget := make(chan pingData) // 送向printer的数据
-	pingDatachanPro := make(chan pingData)    // 送向本地储存的数据
-
-	bindChanToChans(endChanOrigin, endChans...)
+	pingDataChanPro := make(chan pingData)    // 送向本地储存的数据
 
 	for i := 0; i < serviceNum; i++ {
-		endChans = append(endChans, make(chan bool))
+		endChans = append(endChans, make(chan bool)) // 方便无阻塞的发送信号给各个协程
 	}
+	// 绑定一下多播的信号
+	go bindChanToChansPing(pingDataChanOri, pingDataChanTarget, pingDataChanPro)
+	go bindChanToChansBool(endChanOrigin, endChans)
+
 	endChan := endChans[0] // 调度用的
 	go clock(clockChan, repaintTime, endChans[1])
 	go systemSignal(endChanOrigin)
-	go printer(clockChan, endChans[2], pingDataChanOri)
-	go pinger(pingDataChanTarget, hosts, endChans[3], sleepTime)
+	go printer(clockChan, endChans[2], pingDataChanTarget)
+	go pinger(pingDataChanOri, hosts, endChans[3], sleepTime, count)
 
-	pingDatas := make([]PingTimeData, 0) // 存档的ping数据
-	for {
-		select {
-		case <-endChan:
-			break;
-		case temp := <-pingDataChanOri:
-			pingDatas = append(pingDatas, PingTimeData{time.Now().Second()})
-		}
-	}
-
-	// TODO 处理数据
+	pingDataAll := guiExec(endChan, pingDataChanPro) // 存档的ping数据
+	print(len(pingDataAll))
 }

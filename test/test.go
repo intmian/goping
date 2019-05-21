@@ -1,14 +1,9 @@
 package main
 
-import (
-	"gonum.org/v1/plot"
-	"gonum.org/v1/plot/plotter"
-	"gonum.org/v1/plot/plotutil"
-	"gonum.org/v1/plot/vg"
-)
+import ping_simple "ping_go_simple"
 
 func main() {
-	p, _ := plot.New()
+	/*p, _ := plot.New()
 
 	p.Title.Text = "Hello Price"
 	p.X.Label.Text = "Quantity Demand"
@@ -24,5 +19,6 @@ func main() {
 
 	plotutil.AddLinePoints(p, points)
 
-	p.Save(4*vg.Inch, 4*vg.Inch, "price.png")
+	p.Save(4*vg.Inch, 4*vg.Inch, "price.png")*/
+	ping_simple.Gui([]string{"www.baidu.com"})
 }
