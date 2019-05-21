@@ -20,5 +20,5 @@ func main() {
 	plotutil.AddLinePoints(p, points)
 
 	p.Save(4*vg.Inch, 4*vg.Inch, "price.png")*/
-	ping_simple.Gui([]string{"www.baidu.com"})
+	ping_simple.Gui()
 }

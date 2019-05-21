@@ -90,7 +90,7 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 			hostData[data.host] = PingDataSmall{data.avgTime, data.lostRate}
 			clear()
 			for k, v := range hostData {
-				fmt.Printf("%-20s : %3.2fms %3.2f%%\n", k, v.avgTime, v.lostRate)
+				fmt.Printf("%-20s : %3.2fms %3.2f%%\n", k, v.avgTime, v.lostRate * 100)
 			}
 			print(strFlash[i])
 			i++
@@ -183,7 +183,7 @@ func Gui() {
 	repaintTime := settingData["repaintTime"]
 	count := int(settingData["count"])
 
-	data2, err2 := ioutil.ReadFile("setting.json")
+	data2, err2 := ioutil.ReadFile("hosts.json")
 	if err2 != nil {
 		fmt.Printf("文件%s不存在\n", "setting.json")
 		return
