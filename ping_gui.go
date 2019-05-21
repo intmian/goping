@@ -71,8 +71,9 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 		pingData: 外部来的数据
 	*/
 	clear()
-	strFlash := []string{"↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑", "→→→→→→→→→→→→→→→", "↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓", "←←←←←←←←←←←←←←←"}
-	strBack := "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" // 需要多一点\b 不知道为什么和方向箭头一样数量的话在我的cmder里面就显示不清楚了
+	strFlash := []string{"↑↑↑运行中↑↑↑", "→→→运行中→→→",
+		"↓↓↓运行中↓↓↓", "←←←运行中←←←"}
+	strBack := "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" // 需要多一点\b 不知道为什么和方向箭头一样数量的话在我的cmder里面就显示不清楚了
 
 	hostData := make(map[string]PingDataSmall) // 主机号对应的数据
 
@@ -90,7 +91,7 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 			hostData[data.host] = PingDataSmall{data.avgTime, data.lostRate}
 			clear()
 			for k, v := range hostData {
-				fmt.Printf("%-20s : %3.2fms %3.2f%%\n", k, v.avgTime, v.lostRate * 100)
+				fmt.Printf("%-20s : %6.2fms %3.0f%%\n", k, v.avgTime, v.lostRate * 100)
 			}
 			print(strFlash[i])
 			i++
