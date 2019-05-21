@@ -5,15 +5,15 @@ import (
 	"time"
 )
 
-type Ping_info struct {
-	Average  float64
-	LostRate float64
+type PingInfo struct {
+	Average  float32
+	LostRate float32
 }
 
-func Ping_inside_simple(host string, c chan Ping_info) {
-	Ping_inside(host, c, 5, 32, 1000, false)
+func Ping_inside_simple(host string, c chan PingInfo) {
+	Ping_inside(host, c, 4, 32, 1000, false)
 }
-func Ping_inside(host string, c chan Ping_info, count int, size int, timeout int64, never_stop bool) {
+func Ping_inside(host string, c chan PingInfo, count int, size int, timeout int64, never_stop bool) {
 
 	starttime := time.Now()
 	conn, err := net.DialTimeout("ip4:icmp", host, time.Duration(timeout*1000*1000))
@@ -82,5 +82,5 @@ func Ping_inside(host string, c chan Ping_info, count int, size int, timeout int
 		seq++
 		count--
 	}
-	c <- Ping_info{float64(sumT) / float64(sendN), float64(lostN) / float64(sendN)}
+	c <- PingInfo{float32(sumT) / float32(sendN), float32(lostN) / float32(sendN)}
 }
