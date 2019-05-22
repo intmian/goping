@@ -257,7 +257,7 @@ func Gui() {
 		pAvg.Add(l) // 颜色是随机填充的
 		pAvg.Legend.Add(hosts[i], l)
 	}
-	_ = pAvg.Save(10*vg.Inch, 10*vg.Inch, "avg.png")
+	_ = pAvg.Save(vg.Length(5+float64(pingDataAll[len(pingDataAll)-1].time-pingDataAll[0].time))*vg.Inch, 5*vg.Inch, "avg.png")
 	// 和上面相同
 	lostRatesPts := make([]plotter.XYs, n)
 	for i := 0; i < n; i++ {
@@ -279,5 +279,5 @@ func Gui() {
 		pLostRate.Add(l)
 		pLostRate.Legend.Add(hosts[i], l)
 	}
-	_ = pLostRate.Save(10*vg.Inch, 10*vg.Inch, "lost_rate.png")
+	_ = pLostRate.Save(vg.Length(5+float64(pingDataAll[len(pingDataAll)-1].time-pingDataAll[0].time))*vg.Inch, 5*vg.Inch, "lost_rate.png")
 }
