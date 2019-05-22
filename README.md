@@ -20,9 +20,24 @@
     ```shell
     go get github.com/intmian/ping_go_simple
     ```
+
 - 只需gui工具的话，下载gui可执行文件[go gui](https://github.com/intmian/ping_go_simple/releases/download/v1.0-alpha/ping.rar)
 
+## issue
+
+请提出宝贵意见 [issue](https://github.com/intmian/ping_go_simple/issues/new)
+
 ## 使用
+
+### 依赖
+
+gui依赖于`Gonum Plot`
+
+使用`go get`工具进行安装源码
+
+```shell
+go get gonum.org/v1/plot/...
+```
 
 ### 引入
 
@@ -113,7 +128,7 @@ import "github.com/intmian/ping_simple"
 
       ```json
       [
-      	"www.baidu.com",
-      	"www.intmian.com"
+        "www.baidu.com",
+        "www.intmian.com"
       ]
       ```
