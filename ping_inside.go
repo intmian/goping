@@ -82,5 +82,10 @@ func Ping_inside(host string, c chan PingInfo, count int, size int, timeout int6
 		seq++
 		count--
 	}
-	c <- PingInfo{float32(sumT) / float32(sendN), float32(lostN) / float32(sendN)}
+	if lostN == sendN {
+		c <- PingInfo{float32(timeout), 1}
+	} else {
+		c <- PingInfo{float32(float64(sumT)-float64(lostN)*float64(timeout)) / float32(recvN), float32(lostN) / float32(sendN)}
+		// 除去丢失的算时间
+	}
 }

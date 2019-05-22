@@ -235,7 +235,7 @@ func Gui() {
 		}
 	}
 
-	avgPts := make([]plotter.XYs, n)
+	avgPts := make([]plotter.XYs, n) // 平均时间的数据
 	for i := 0; i < n; i++ {
 		length := len(avgs[i])
 		avgPts[i] = make(plotter.XYs, length)
@@ -244,7 +244,7 @@ func Gui() {
 			avgPts[i][j].Y = float64(avgs[i][j])
 		}
 	}
-	pAvg, err := plot.New()
+	pAvg, err := plot.New() // 图表
 	if err != nil {
 		panic(err)
 	}
@@ -254,11 +254,11 @@ func Gui() {
 	for i := 0; i < n; i++ {
 		l, _ := plotter.NewLine(avgPts[i])
 		l.LineStyle.Color = color.RGBA{R: uint8(rand.Intn(256)), G: uint8(rand.Intn(256)), B: uint8(rand.Intn(256)), A: 255}
-		pAvg.Add(l)
+		pAvg.Add(l) // 颜色是随机填充的
 		pAvg.Legend.Add(hosts[i], l)
 	}
 	_ = pAvg.Save(10*vg.Inch, 10*vg.Inch, "avg.png")
-
+	// 和上面相同
 	lostRatesPts := make([]plotter.XYs, n)
 	for i := 0; i < n; i++ {
 		length := len(lostRates[i])
