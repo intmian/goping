@@ -1,4 +1,4 @@
-// goping 包包含了各种ping及一个动态界面
+// Package goping 包含了各种ping及一个动态界面
 package goping
 
 import (
@@ -8,22 +8,20 @@ import (
 	"strconv"
 	"time"
 )
+
 // SimplePing 是一个默认参数版的Ping
 func SimplePing(host string, c chan int) {
 	Ping(host, c, 4, 32, 1000, false)
 }
+
 // Ping 可以根据参数在命令行上输出结果
 func Ping(host string, c chan int, count int, size int, timeout int64, never_stop bool) {
 
 	cname, err := net.LookupCNAME(host)
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 	startTime := time.Now()
 	conn, err := net.DialTimeout("ip4:icmp", host, time.Duration(timeout*1000*1000))
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 	ip := conn.RemoteAddr()
 	fmt.Println("正在 Ping " + cname + " [" + ip.String() + "] 具有 32 字节的数据:")
 
@@ -59,7 +57,8 @@ func Ping(host string, c chan int, count int, size int, timeout int64, never_sto
 		checkError(err)
 
 		startTime = time.Now()
-		_ = conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
+		err := conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
+		checkError(err)
 		_, err = conn.Write(msg[0:length])
 
 		const EchoReplyHeadLen = 20
@@ -120,7 +119,7 @@ func checkSum(msg []byte) uint16 {
 
 func checkError(err error) {
 	if err != nil {
-		_,err := fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+		_, err := fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
 		if err != nil {
 			panic(err)
 		}

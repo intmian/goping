@@ -4,6 +4,7 @@ import (
 	"net"
 	"time"
 )
+
 /*
 PingInfo is
 type PingInfo struct {
@@ -15,18 +16,18 @@ type PingInfo struct {
 	Average  float32
 	LostRate float32
 }
+
 // PingInsideSimple 是默认参数版的PingInside
 func PingInsideSimple(host string, c chan PingInfo) {
 	PingInside(host, c, 4, 32, 1000, false)
 }
+
 // PingInside 是可以通过PingInfo返回结果的Ping 但是不能返回每次的结果
 func PingInside(host string, c chan PingInfo, count int, size int, timeout int64, neverStop bool) {
 
 	startTime := time.Now()
 	conn, err := net.DialTimeout("ip4:icmp", host, time.Duration(timeout*1000*1000))
-	if err != nil {
-		panic(err)
-	}
+	checkError(err)
 	var seq int16 = 1
 	id0, id1 := genIdentifier(host)
 	const EchoRequestHeadLen = 8
@@ -59,7 +60,8 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 		checkError(err)
 		checkError(err)
 		startTime = time.Now()
-		_ = conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
+		err := conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
+		checkError(err)
 		_, err = conn.Write(msg[0:length])
 
 		const EchoReplyHeadLen = 20

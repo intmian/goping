@@ -38,7 +38,7 @@ func clear() {
 	*/
 	c := exec.Command("cmd", "/c", "cls") //可以根据自己的需要修改参数，自己试试，我也不清楚
 	c.Stdout = os.Stdout
-	err:=c.Run()
+	err := c.Run()
 	if err != nil {
 		panic(err)
 	}
@@ -179,6 +179,7 @@ func guiExec(endChan chan bool, pingDataChanPro chan pingData) []pingTimeData {
 		}
 	}
 }
+
 // Gui 可以再命令行上动态的输出结果
 func Gui() {
 	rand.Seed(time.Now().UnixNano())
