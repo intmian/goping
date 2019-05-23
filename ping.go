@@ -4,7 +4,6 @@ package goping
 import (
 	"fmt"
 	"net"
-	"os"
 	"strconv"
 	"time"
 )
@@ -118,13 +117,13 @@ func checkSum(msg []byte) uint16 {
 }
 
 func checkError(err error) {
-	if err != nil {
-		_, err := fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		if err != nil {
-			panic(err)
-		}
-		os.Exit(1)
-	}
+	//if err != nil {
+	//	_, err := fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//	os.Exit(1)
+	//}
 }
 
 func genSequence(v int16) (byte, byte) {
