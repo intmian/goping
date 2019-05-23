@@ -15,7 +15,7 @@ func SimplePing(host string, c chan int) {
 }
 
 // Ping 可以根据参数在命令行上输出结果
-func Ping(host string, c chan int, count int, size int, timeout int64, never_stop bool) {
+func Ping(host string, c chan int, count int, size int, timeout int64, neverStop bool) {
 
 	cname, err := net.LookupCNAME(host)
 	checkError(err)
@@ -36,7 +36,7 @@ func Ping(host string, c chan int, count int, size int, timeout int64, never_sto
 	longT := -1
 	sumT := 0
 
-	for count > 0 || never_stop {
+	for count > 0 || neverStop {
 		sendN++
 		var msg []byte = make([]byte, size+EchoRequestHeadLen)
 		msg[0] = 8                        // echo
@@ -60,7 +60,7 @@ func Ping(host string, c chan int, count int, size int, timeout int64, never_sto
 		err := conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
 		checkError(err)
 		_, err = conn.Write(msg[0:length])
-
+		checkError(err)
 		const EchoReplyHeadLen = 20
 
 		var receive []byte = make([]byte, EchoReplyHeadLen+length)

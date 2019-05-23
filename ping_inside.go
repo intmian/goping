@@ -58,18 +58,17 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 		conn, err = net.DialTimeout("ip:icmp", host, time.Duration(timeout*1000*1000))
 
 		checkError(err)
-		checkError(err)
 		startTime = time.Now()
 		err := conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
 		checkError(err)
 		_, err = conn.Write(msg[0:length])
-
+		checkError(err)
 		const EchoReplyHeadLen = 20
 
 		var receive []byte = make([]byte, EchoReplyHeadLen+length)
 		n, err := conn.Read(receive)
 		_ = n
-
+		checkError(err)
 		var endDuration int = int(int64(time.Since(startTime)) / (1000 * 1000))
 		if int64(endDuration) < timeout {
 			sumT += endDuration
@@ -93,6 +92,9 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 		seq++
 		count--
 	}
+	processData(c,timeout,sumT,recvN,lostN,sendN,recvN)
+}
+func processData(c chan PingInfo, timeout int64, sumT int, recVN int, lostN int, sendN int,recvN int) {
 	if lostN == sendN {
 		c <- PingInfo{float32(timeout), 1}
 	} else {
