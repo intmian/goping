@@ -15,7 +15,10 @@ func SimplePing(host string, c chan int) {
 // Ping 可以根据参数在命令行上输出结果
 func Ping(host string, c chan int, count int, size int, timeout int64, never_stop bool) {
 
-	cname, _ := net.LookupCNAME(host)
+	cname, err := net.LookupCNAME(host)
+	if err != nil {
+		panic(err)
+	}
 	startTime := time.Now()
 	conn, err := net.DialTimeout("ip4:icmp", host, time.Duration(timeout*1000*1000))
 	if err != nil {

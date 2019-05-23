@@ -24,7 +24,9 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 
 	startTime := time.Now()
 	conn, err := net.DialTimeout("ip4:icmp", host, time.Duration(timeout*1000*1000))
-
+	if err != nil {
+		panic(err)
+	}
 	var seq int16 = 1
 	id0, id1 := genIdentifier(host)
 	const EchoRequestHeadLen = 8
@@ -55,7 +57,7 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 		conn, err = net.DialTimeout("ip:icmp", host, time.Duration(timeout*1000*1000))
 
 		checkError(err)
-
+		checkError(err)
 		startTime = time.Now()
 		_ = conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
 		_, err = conn.Write(msg[0:length])
