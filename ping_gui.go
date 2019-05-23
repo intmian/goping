@@ -1,4 +1,4 @@
-package ping_simple
+package goping
 
 import (
 	"encoding/json"
@@ -21,11 +21,11 @@ type pingData struct {
 	avgTime  float32 // 平均往返时间
 	lostRate float32 // 丢失率
 }
-type PingDataSmall struct {
+type pingDataSmall struct {
 	avgTime  float32 // 平均往返时间
 	lostRate float32 // 丢失率
 }
-type PingTimeData struct {
+type pingTimeData struct {
 	time     float32 // 时间梭
 	host     string  // 主机地址
 	avgTime  float32 // 平均往返时间
@@ -38,7 +38,10 @@ func clear() {
 	*/
 	c := exec.Command("cmd", "/c", "cls") //可以根据自己的需要修改参数，自己试试，我也不清楚
 	c.Stdout = os.Stdout
-	c.Run()
+	err:=c.Run()
+	if err != nil {
+		panic(err)
+	}
 }
 func clock(clockSignals chan<- bool, duration float32, endSignals <-chan bool) {
 	/*
@@ -69,7 +72,7 @@ func systemSignal(endSignal chan<- bool) {
 	endSignal <- true
 }
 
-func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) map[string]PingDataSmall {
+func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) map[string]pingDataSmall {
 	/*
 		输出数据
 		clock : 周期输出时钟信号
@@ -81,7 +84,7 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 		"↓↓↓运行中↓↓↓", "←←←运行中←←←"}
 	strBack := "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" // 需要多一点\b 不知道为什么和方向箭头一样数量的话在我的cmder里面就显示不清楚了
 
-	hostData := make(map[string]PingDataSmall) // 主机号对应的数据
+	hostData := make(map[string]pingDataSmall) // 主机号对应的数据
 
 	i := 0
 	for {
@@ -94,7 +97,7 @@ func printer(clock <-chan bool, endSig <-chan bool, pingData <-chan pingData) ma
 		case <-endSig:
 			return hostData
 		case data := <-pingData: // 刷新全部
-			hostData[data.host] = PingDataSmall{data.avgTime, data.lostRate}
+			hostData[data.host] = pingDataSmall{data.avgTime, data.lostRate}
 			clear()
 			for k, v := range hostData {
 				fmt.Printf("%-20s : %6.2fms %3.0f%%\n", k, v.avgTime, v.lostRate*100)
@@ -125,7 +128,7 @@ func pinger(pingSig chan<- pingData, hosts []string, endSig <-chan bool, sleepTi
 			return
 		default:
 			for _, hostC := range hostCs {
-				go Ping_inside(hostC.host, hostC.c, count, 32, 3000, false)
+				go PingInside(hostC.host, hostC.c, count, 32, 3000, false)
 			} // 运行所有ping
 			for _, hostC := range hostCs {
 				var temp pingData
@@ -164,19 +167,19 @@ func bindChanToChansPing(chanSource chan pingData, chansTarget ...chan pingData)
 		}
 	}
 }
-func guiExec(endChan chan bool, pingDataChanPro chan pingData) []PingTimeData {
-	var pingDataAll []PingTimeData
+func guiExec(endChan chan bool, pingDataChanPro chan pingData) []pingTimeData {
+	var pingDataAll []pingTimeData
 	for { // exec
 		select {
 		case <-endChan: // 退出
 			return pingDataAll
 		case temp := <-pingDataChanPro: // 同步的存一下
 			pingDataAll = append(pingDataAll,
-				PingTimeData{float32(time.Now().Hour()) + float32(time.Now().Minute())/60 + float32(time.Now().Second())/3600, temp.host, temp.avgTime, temp.lostRate})
+				pingTimeData{float32(time.Now().Hour()) + float32(time.Now().Minute())/60 + float32(time.Now().Second())/3600, temp.host, temp.avgTime, temp.lostRate})
 		}
 	}
 }
-
+// Gui 可以再命令行上动态的输出结果
 func Gui() {
 	rand.Seed(time.Now().UnixNano())
 	data, err := ioutil.ReadFile("setting.json")
@@ -257,7 +260,7 @@ func Gui() {
 		pAvg.Add(l) // 颜色是随机填充的
 		pAvg.Legend.Add(hosts[i], l)
 	}
-	_ = pAvg.Save(vg.Length(5+float64(pingDataAll[len(pingDataAll)-1].time-pingDataAll[0].time))*vg.Inch, 5*vg.Inch, "avg.png")
+	_ = pAvg.Save(vg.Length(5+5*float64(pingDataAll[len(pingDataAll)-1].time-pingDataAll[0].time))*vg.Inch, 5*vg.Inch, "avg.png")
 	// 和上面相同
 	lostRatesPts := make([]plotter.XYs, n)
 	for i := 0; i < n; i++ {
@@ -279,5 +282,5 @@ func Gui() {
 		pLostRate.Add(l)
 		pLostRate.Legend.Add(hosts[i], l)
 	}
-	_ = pLostRate.Save(vg.Length(5+float64(pingDataAll[len(pingDataAll)-1].time-pingDataAll[0].time))*vg.Inch, 5*vg.Inch, "lost_rate.png")
+	_ = pLostRate.Save(vg.Length(5+5*float64(pingDataAll[len(pingDataAll)-1].time-pingDataAll[0].time))*vg.Inch, 5*vg.Inch, "lost_rate.png")
 }

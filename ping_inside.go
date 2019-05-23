@@ -1,26 +1,33 @@
-package ping_simple
+package goping
 
 import (
 	"net"
 	"time"
 )
-
+/*
+PingInfo is
 type PingInfo struct {
 	Average  float32
 	LostRate float32
 }
-
-func Ping_inside_simple(host string, c chan PingInfo) {
-	Ping_inside(host, c, 4, 32, 1000, false)
+*/
+type PingInfo struct {
+	Average  float32
+	LostRate float32
 }
-func Ping_inside(host string, c chan PingInfo, count int, size int, timeout int64, never_stop bool) {
+// PingInsideSimple 是默认参数版的PingInside
+func PingInsideSimple(host string, c chan PingInfo) {
+	PingInside(host, c, 4, 32, 1000, false)
+}
+// PingInside 是可以通过PingInfo返回结果的Ping 但是不能返回每次的结果
+func PingInside(host string, c chan PingInfo, count int, size int, timeout int64, neverStop bool) {
 
-	starttime := time.Now()
+	startTime := time.Now()
 	conn, err := net.DialTimeout("ip4:icmp", host, time.Duration(timeout*1000*1000))
 
 	var seq int16 = 1
-	id0, id1 := genidentifier(host)
-	const ECHO_REQUEST_HEAD_LEN = 8
+	id0, id1 := genIdentifier(host)
+	const EchoRequestHeadLen = 8
 
 	sendN := 0
 	recvN := 0
@@ -29,17 +36,17 @@ func Ping_inside(host string, c chan PingInfo, count int, size int, timeout int6
 	longT := -1
 	sumT := 0
 
-	for count > 0 || never_stop {
+	for count > 0 || neverStop {
 		sendN++
-		var msg []byte = make([]byte, size+ECHO_REQUEST_HEAD_LEN)
+		var msg []byte = make([]byte, size+EchoRequestHeadLen)
 		msg[0] = 8                        // echo
 		msg[1] = 0                        // code 0
 		msg[2] = 0                        // checksum
 		msg[3] = 0                        // checksum
 		msg[4], msg[5] = id0, id1         //identifier[0] identifier[1]
-		msg[6], msg[7] = gensequence(seq) //sequence[0], sequence[1]
+		msg[6], msg[7] = genSequence(seq) //sequence[0], sequence[1]
 
-		length := size + ECHO_REQUEST_HEAD_LEN
+		length := size + EchoRequestHeadLen
 
 		check := checkSum(msg[0:length])
 		msg[2] = byte(check >> 8)
@@ -49,32 +56,32 @@ func Ping_inside(host string, c chan PingInfo, count int, size int, timeout int6
 
 		checkError(err)
 
-		starttime = time.Now()
-		_ = conn.SetDeadline(starttime.Add(time.Duration(timeout * 1000 * 1000)))
+		startTime = time.Now()
+		_ = conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
 		_, err = conn.Write(msg[0:length])
 
-		const ECHO_REPLY_HEAD_LEN = 20
+		const EchoReplyHeadLen = 20
 
-		var receive []byte = make([]byte, ECHO_REPLY_HEAD_LEN+length)
+		var receive []byte = make([]byte, EchoReplyHeadLen+length)
 		n, err := conn.Read(receive)
 		_ = n
 
-		var endduration int = int(int64(time.Since(starttime)) / (1000 * 1000))
-
-		sumT += endduration
-
-		if err != nil || receive[ECHO_REPLY_HEAD_LEN+4] != msg[4] || receive[ECHO_REPLY_HEAD_LEN+5] != msg[5] || receive[ECHO_REPLY_HEAD_LEN+6] != msg[6] || receive[ECHO_REPLY_HEAD_LEN+7] != msg[7] || endduration >= int(timeout) || receive[ECHO_REPLY_HEAD_LEN] == 11 {
+		var endDuration int = int(int64(time.Since(startTime)) / (1000 * 1000))
+		if int64(endDuration) < timeout {
+			sumT += endDuration
+		}
+		if err != nil || receive[EchoReplyHeadLen+4] != msg[4] || receive[EchoReplyHeadLen+5] != msg[5] || receive[EchoReplyHeadLen+6] != msg[6] || receive[EchoReplyHeadLen+7] != msg[7] || endDuration >= int(timeout) || receive[EchoReplyHeadLen] == 11 {
 			lostN++
 		} else {
 			if shortT == -1 {
-				shortT = endduration
-			} else if shortT > endduration {
-				shortT = endduration
+				shortT = endDuration
+			} else if shortT > endDuration {
+				shortT = endDuration
 			}
 			if longT == -1 {
-				longT = endduration
-			} else if longT < endduration {
-				longT = endduration
+				longT = endDuration
+			} else if longT < endDuration {
+				longT = endDuration
 			}
 			recvN++
 		}
@@ -85,7 +92,7 @@ func Ping_inside(host string, c chan PingInfo, count int, size int, timeout int6
 	if lostN == sendN {
 		c <- PingInfo{float32(timeout), 1}
 	} else {
-		c <- PingInfo{float32(float64(sumT)-float64(lostN)*float64(timeout)) / float32(recvN), float32(lostN) / float32(sendN)}
+		c <- PingInfo{float32(sumT) / float32(recvN), float32(lostN) / float32(sendN)}
 		// 除去丢失的算时间
 	}
 }
