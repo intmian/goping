@@ -1,15 +1,19 @@
 # go simple ping
+![go](https://img.shields.io/badge/language-go-blue.svg)![](https://goreportcard.com/badge/github.com/intmian/goping)![](https://img.shields.io/badge/license-MIT-000000.svg)![stable](http://badges.github.io/stability-badges/dist/stable.svg)
 
 ## 简介
 
 1. 提供可视化的网络实时状况展示
-    ![可视化](https://i.loli.net/2019/05/22/5ce4daad433a386721.png)
-    ![](https://i.loli.net/2019/05/22/5ce4e2f47de7460950.png)
-    ![](https://i.loli.net/2019/05/22/5ce4e30c65a5732204.png)
 2. gui界面提供灵活的软件配置
    - 可通过json配置测试主机列表
    - 可通过json配置各项参数
 3. 提供一大堆go实现高效ping（支持多个ping并发）
+
+## 预览
+
+![](https://i.loli.net/2019/05/23/5ce68d288511a70859.png)
+![](https://i.loli.net/2019/05/23/5ce68d65b831a57324.png)
+![](https://i.loli.net/2019/05/23/5ce68d81abcc926444.png)
 
 ## 安装
 
@@ -18,14 +22,14 @@
   使用`go get`工具进行安装源码
 
     ```shell
-    go get github.com/intmian/ping_go_simple
+    go get github.com/intmian/goping
     ```
 
-- 只需gui工具的话，下载gui可执行文件[go gui](https://github.com/intmian/ping_go_simple/releases/download/v1.0-alpha/ping.rar)
+- 只需gui工具的话，下载gui可执行文件[go gui](https://github.com/intmian/goping/releases/download/v1.0/goping.rar)
 
 ## issue
 
-请提出宝贵意见 [issue](https://github.com/intmian/ping_go_simple/issues/new)
+请提出宝贵意见 [issue](https://github.com/intmian/goping/issues/new)
 
 ## 使用
 
@@ -42,12 +46,12 @@ go get gonum.org/v1/plot/...
 ### 引入
 
 ```go
-import "github.com/intmian/ping_simple"
+import "github.com/intmian/goping"
 ```
 
 ### 接口
 
-- `Ping(host string, c chan int, count int, size int, timeout int64, never_stop bool)`
+- `Ping(host string, c chan int, count int, size int, timeout int64, neverStop bool)`
 
   - `host` 主机号
 
@@ -57,11 +61,11 @@ import "github.com/intmian/ping_simple"
 
   - `timeout` 时间
 
-  - `never_stop` 是否为永久的ping（一直ping，直到ctrl + c终止）
+  - `neverStop` 是否为永久的ping（一直ping，直到ctrl + c终止）
 
   - ```go
     done chan bool
-    go Ping(host, done, count, timeout, never_stop)
+    go Ping(host, done, count, timeout, neverStop)
     <-done
     ```
 
@@ -84,19 +88,19 @@ import "github.com/intmian/ping_simple"
     }
     ```
 
-- `Ping_inside(host string, c chan PingInfo, count int, size int, timeout int64, never_stop bool)`
+- `PingInside(host string, c chan PingInfo, count int, size int, timeout int64, neverStop bool)`
 
   - 和之前的ping一样，不过数据以PingInfo形式输出
 
   - ```go
     data chan bool
-    go Ping_inside(host, data, count, timeout, never_stop)
+    go Ping_inside(host, data, count, timeout, neverStop)
     temp := <-data
     print(temp.Average)
     print(temp.LostRate)
     ```
 
-- `Ping_inside_simple(host string, c chan PingInfo)`
+- `PingInsideSimple(host string, c chan PingInfo)`
 
   - ```go
     func Ping_inside_simple(host string, c chan PingInfo) {
