@@ -12,8 +12,8 @@
 ## 预览
 
 ![](https://i.loli.net/2019/05/23/5ce68d288511a70859.png)
-![](https://i.loli.net/2019/05/23/5ce68d65b831a57324.png)
-![](https://i.loli.net/2019/05/23/5ce68d81abcc926444.png)
+![](https://i.loli.net/2019/05/23/5ce6ab423f85927728.png)
+![](https://i.loli.net/2019/05/23/5ce6ab5b2ba2260527.png)
 
 ## 安装
 
