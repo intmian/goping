@@ -92,9 +92,9 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 		seq++
 		count--
 	}
-	processData(c,timeout,sumT,recvN,lostN,sendN,recvN)
+	processData(c, timeout, sumT, recvN, lostN, sendN, recvN)
 }
-func processData(c chan PingInfo, timeout int64, sumT int, recVN int, lostN int, sendN int,recvN int) {
+func processData(c chan PingInfo, timeout int64, sumT int, recVN int, lostN int, sendN int, recvN int) {
 	if lostN == sendN {
 		c <- PingInfo{float32(timeout), 1}
 	} else {
