@@ -1,5 +1,5 @@
 # go simple ping
-![go](https://img.shields.io/badge/language-go-blue.svg)![](https://goreportcard.com/badge/github.com/intmian/goping)![](https://img.shields.io/badge/license-MIT-000000.svg)![stable](http://badges.github.io/stability-badges/dist/stable.svg)
+![go](https://img.shields.io/badge/language-go-blue.svg)![](https://goreportcard.com/badge/github.com/intmian/goping)![APM](https://img.shields.io/apm/l/vim-mode.svg)![GitHub release](https://img.shields.io/github/release/intmian/goping.svg)![GitHub tag (latest SemVer)](https://img.shields.io/github/tag/intmian/goping.svg)
 
 ## 简介
 
