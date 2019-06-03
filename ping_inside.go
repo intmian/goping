@@ -56,7 +56,10 @@ func PingInside(host string, c chan PingInfo, count int, size int, timeout int64
 		msg[3] = byte(check & 255)
 
 		conn, err = net.DialTimeout("ip:icmp", host, time.Duration(timeout*1000*1000))
-
+		if conn == nil {
+			c <- PingInfo{float32(timeout), 1}
+			return
+		}
 		checkError(err)
 		startTime = time.Now()
 		err := conn.SetDeadline(startTime.Add(time.Duration(timeout * 1000 * 1000)))
