@@ -25,7 +25,7 @@
     go get github.com/intmian/goping
     ```
 
-- 只需gui工具的话，下载gui可执行文件[go gui](https://github.com/intmian/goping/releases/download/v1.0/goping.rar)
+- 只需gui工具的话，下载gui可执行文件[go gui](https://github.com/intmian/goping/releases/download/v1.2-alpha/test.rar)
 
 ## issue
 
