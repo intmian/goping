@@ -1,5 +1,5 @@
 # go simple ping
-![go](https://img.shields.io/badge/language-go-blue.svg)![](https://goreportcard.com/badge/github.com/intmian/goping)![](https://img.shields.io/badge/license-MIT-000000.svg)![stable](http://badges.github.io/stability-badges/dist/stable.svg)
+![go](https://img.shields.io/badge/language-go-blue.svg) ![](https://goreportcard.com/badge/github.com/intmian/goping) ![APM](https://img.shields.io/apm/l/vim-mode.svg) ![GitHub release](https://img.shields.io/github/release/intmian/goping.svg) ![GitHub All Releases](https://img.shields.io/github/downloads/intmian/goping/total.svg)
 
 ## 简介
 
@@ -12,8 +12,8 @@
 ## 预览
 
 ![](https://i.loli.net/2019/05/23/5ce68d288511a70859.png)
-![](https://i.loli.net/2019/05/23/5ce68d65b831a57324.png)
-![](https://i.loli.net/2019/05/23/5ce68d81abcc926444.png)
+![](https://i.loli.net/2019/05/23/5ce6ab423f85927728.png)
+![](https://i.loli.net/2019/05/23/5ce6ab5b2ba2260527.png)
 
 ## 安装
 
